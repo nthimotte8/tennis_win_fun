@@ -8,3 +8,6 @@ IDE: pycharm 2022
 
 API from RapidApi:
 - https://rapidapi.com/jjrm365-kIFr3Nx_odV/api/tennis-api-atp-wta-itf
+
+![CI](https://github.com/nthimotte8/tennis_win_fun/actions/workflows/ci.yml/badge.svg)
+
