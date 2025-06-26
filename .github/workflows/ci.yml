@@ -1,0 +1,52 @@
+name: CI pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-and-test:
+    environment: dev
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Installer Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Cacher les paquets Poetry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Installer les dépendances
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Lint avec Ruff
+        run: poetry run ruff check .
+
+      - name: Run tests
+        run: poetry run pytest
+
+  deploy-staging:
+    needs: lint-and-test
+    if: github.ref == 'refs/heads/develop'
+    environment: stg
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Déploiement staging (à adapter selon ta stack)..."
+
+  deploy-prod:
+    needs: lint-and-test
+    if: github.ref == 'refs/heads/main'
+    environment: prod
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Déploiement production (à adapter selon ta stack)..."
