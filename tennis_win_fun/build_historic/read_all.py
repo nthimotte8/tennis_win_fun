@@ -12,22 +12,78 @@ class BuildHistoric:
         Initialize the BuildHistoric class.
         """
         self.dossier_csv = "../historic_data"
-        self.all_cols = ['tourney_id', 'tourney_name', 'surface', 'draw_size', 'tourney_level',
-                         'tourney_date', 'match_num', 'winner_id', 'winner_seed', 'winner_entry',
-                         'winner_name', 'winner_hand', 'winner_ht', 'winner_ioc', 'winner_age',
-                         'loser_id', 'loser_seed', 'loser_entry', 'loser_name', 'loser_hand',
-                         'loser_ht', 'loser_ioc', 'loser_age', 'score', 'best_of', 'round',
-                         'minutes', 'w_ace', 'w_df', 'w_svpt', 'w_1stIn', 'w_1stWon', 'w_2ndWon',
-                         'w_SvGms', 'w_bpSaved', 'w_bpFaced', 'l_ace', 'l_df', 'l_svpt',
-                         'l_1stIn', 'l_1stWon', 'l_2ndWon', 'l_SvGms', 'l_bpSaved', 'l_bpFaced',
-                         'winner_rank', 'winner_rank_points', 'loser_rank', 'loser_rank_points']
+        self.all_cols = [
+            "tourney_id",
+            "tourney_name",
+            "surface",
+            "draw_size",
+            "tourney_level",
+            "tourney_date",
+            "match_num",
+            "winner_id",
+            "winner_seed",
+            "winner_entry",
+            "winner_name",
+            "winner_hand",
+            "winner_ht",
+            "winner_ioc",
+            "winner_age",
+            "loser_id",
+            "loser_seed",
+            "loser_entry",
+            "loser_name",
+            "loser_hand",
+            "loser_ht",
+            "loser_ioc",
+            "loser_age",
+            "score",
+            "best_of",
+            "round",
+            "minutes",
+            "w_ace",
+            "w_df",
+            "w_svpt",
+            "w_1stIn",
+            "w_1stWon",
+            "w_2ndWon",
+            "w_SvGms",
+            "w_bpSaved",
+            "w_bpFaced",
+            "l_ace",
+            "l_df",
+            "l_svpt",
+            "l_1stIn",
+            "l_1stWon",
+            "l_2ndWon",
+            "l_SvGms",
+            "l_bpSaved",
+            "l_bpFaced",
+            "winner_rank",
+            "winner_rank_points",
+            "loser_rank",
+            "loser_rank_points",
+        ]
 
-        self.tournemant_cols = ['tourney_id', 'tourney_name', 'surface', 'draw_size', 'tourney_level',
-                                'tourney_date']
-        self.player_cols = ['winner_name', 'winner_hand',
-                            'winner_ht', 'winner_ioc', 'winner_age',
-                            'loser_name', 'loser_hand', 'loser_ht', 'loser_ioc',
-                            'loser_age']
+        self.tournemant_cols = [
+            "tourney_id",
+            "tourney_name",
+            "surface",
+            "draw_size",
+            "tourney_level",
+            "tourney_date",
+        ]
+        self.player_cols = [
+            "winner_name",
+            "winner_hand",
+            "winner_ht",
+            "winner_ioc",
+            "winner_age",
+            "loser_name",
+            "loser_hand",
+            "loser_ht",
+            "loser_ioc",
+            "loser_age",
+        ]
 
     def get_historic_from_csv(self, gender: str = "wta") -> pd.DataFrame:
         """
@@ -79,11 +135,15 @@ class BuildHistoric:
         # check if all columns are present in the DataFrame
         missing_cols = set(self.tournemant_cols) - set(df.columns)
         if missing_cols:
-            raise ValueError(f"Les colonnes suivantes sont manquantes dans le DataFrame: {missing_cols}")
+            raise ValueError(
+                f"Les colonnes suivantes sont manquantes dans le DataFrame: {missing_cols}"
+            )
         # Create a DataFrame with tournament information
         df_tourney = df[self.tournemant_cols].drop_duplicates().reset_index(drop=True)
         # Convert tourney_date to datetime format
-        df_tourney['tourney_start_date'] = pd.to_datetime(df_tourney['tourney_date'], format='%Y%m%d')
+        df_tourney["tourney_start_date"] = pd.to_datetime(
+            df_tourney["tourney_date"], format="%Y%m%d"
+        )
 
         return df_tourney
 
@@ -117,9 +177,8 @@ class BuildHistoric:
         df_loser.columns = [col.replace("loser_", "") for col in df_loser.columns]
 
         # Concaténer et supprimer les doublons
-        df_players = pd.concat([df_winner, df_loser], ignore_index=True).drop_duplicates()
+        df_players = pd.concat(
+            [df_winner, df_loser], ignore_index=True
+        ).drop_duplicates()
 
         return df_players
-
-
-
