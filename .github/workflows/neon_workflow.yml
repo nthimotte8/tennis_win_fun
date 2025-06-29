@@ -1,0 +1,49 @@
+name: Neon PR Preview (Python + Alembic)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+jobs:
+  neon_preview:
+    name: Neon Preview Branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+
+      - name: Install dependencies
+        run: |
+          poetry install
+        env:
+          POETRY_VIRTUALENVS_CREATE: false
+
+      - name: Set up Neon Preview Branch
+        id: neon
+        uses: neondatabase/preview-branch-action@v4
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          branch_name: pr-${{ github.event.pull_request.number }}
+
+      - name: Run Alembic migrations
+        env:
+          DATABASE_URL: ${{ steps.neon.outputs.database_url }}
+        run: |
+          alembic upgrade head
+
+      - name: Run tests
+        env:
+          DATABASE_URL: ${{ steps.neon.outputs.database_url }}
+        run: |
+          pytest tests/
