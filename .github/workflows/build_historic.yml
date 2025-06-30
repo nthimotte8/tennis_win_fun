@@ -30,5 +30,11 @@ jobs:
       - name: Installer les dépendances
         run: poetry install
 
+      - name: Lister les fichiers pour déboguer
+        run: |
+          echo "Chemin courant : $(pwd)"
+          ls -R
+
+
       - name: Exécuter le script principal
         run: poetry run python batch/build_historic.py
