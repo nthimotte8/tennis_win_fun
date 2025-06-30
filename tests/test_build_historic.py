@@ -6,8 +6,10 @@ import pytest
 from tennis_win_fun.build_historic.historic_launcher import BuildHistoric
 
 
+
 @pytest.fixture
-def bh():
+def bh(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "sqlite:///tennis.db")
     return BuildHistoric()
 
 
