@@ -17,6 +17,7 @@ jobs:
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/bin:$PATH"
 
       - name: Cacher les paquets Poetry
         uses: actions/cache@v3
@@ -28,6 +29,9 @@ jobs:
 
       - name: Installer les dépendances
         run: poetry install --no-interaction --no-ansi
+
+      - name: Vérifier les paquets installés
+        run: poetry show
 
       - name: Lint avec Ruff
         run: poetry run ruff check .
