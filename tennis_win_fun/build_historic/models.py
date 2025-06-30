@@ -3,8 +3,9 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
+
 class Tournoi(Base):
-    __tablename__ = 'tournois'
+    __tablename__ = "tournois"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     tourney_id = Column(String, unique=True, nullable=True)  # nullable et unique
@@ -15,8 +16,9 @@ class Tournoi(Base):
     tourney_date = Column(Date)
     tourney_start_date = Column(Date)
 
+
 class Joueur(Base):
-    __tablename__ = 'joueurs'
+    __tablename__ = "joueurs"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
