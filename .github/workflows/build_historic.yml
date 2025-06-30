@@ -1,6 +1,6 @@
 name: Exécution manuelle du script main.py
 
-n:
+on:
   push:
     tags:
       - 'v*'
