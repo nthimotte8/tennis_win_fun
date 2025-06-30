@@ -1,4 +1,5 @@
 import os
+
 import pandas as pd
 
 from tennis_win_fun.build_historic.models import DbNeon
@@ -176,7 +177,9 @@ class BuildHistoric:
         df_loser = df[loser_cols].copy()
         df_loser.columns = [col.replace("loser_", "") for col in df_loser.columns]
 
-        df_players = pd.concat([df_winner, df_loser], ignore_index=True).drop_duplicates()
+        df_players = pd.concat(
+            [df_winner, df_loser], ignore_index=True
+        ).drop_duplicates()
 
         return df_players.reset_index(drop=True)
 
@@ -190,7 +193,7 @@ class BuildHistoric:
         df = self.get_historic_from_csv(gender)
         return self.build_tourney(df)
 
-    def run(self, genders: list = ["wta", "atp"]):
+    def run(self, genders=None):
         """
         Run the historic data building process for specified genders.
 
@@ -199,6 +202,8 @@ class BuildHistoric:
         genders : list
             List of gender strings to process (e.g., ["wta", "atp"]).
         """
+        if genders is None:
+            genders = ["wta", "atp"]
         print("Début de la construction des données historiques...")
 
         players_dfs = []

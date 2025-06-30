@@ -1,14 +1,15 @@
+from contextlib import contextmanager
+
+import pandas as pd
 from sqlalchemy import (
-    create_engine,
     Column,
-    String,
     Date,
     Integer,
+    String,
     UniqueConstraint,
+    create_engine,
 )
-from sqlalchemy.orm import sessionmaker, declarative_base
-from contextlib import contextmanager
-import pandas as pd
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 Base = declarative_base()
 
@@ -35,7 +36,7 @@ class Joueur(Base):
     ht = Column(Integer)
     ioc = Column(String)
 
-    __table_args__ = (UniqueConstraint('name', 'ioc', name='_name_ioc_uc'),)
+    __table_args__ = (UniqueConstraint("name", "ioc", name="_name_ioc_uc"),)
 
 
 class DbNeon:
@@ -65,7 +66,11 @@ class DbNeon:
 
         with self.session_scope() as session:
             for _, row in df.iterrows():
-                exists = session.query(Joueur).filter_by(name=row["name"], ioc=row["ioc"]).first()
+                exists = (
+                    session.query(Joueur)
+                    .filter_by(name=row["name"], ioc=row["ioc"])
+                    .first()
+                )
                 if not exists:
                     player = Joueur(
                         name=row["name"],
@@ -97,12 +102,20 @@ class DbNeon:
                 df[col] = None
 
         # Convert dates
-        df['tourney_date'] = pd.to_datetime(df['tourney_date'], format="%Y%m%d", errors='coerce').dt.date
-        df['tourney_start_date'] = pd.to_datetime(df['tourney_start_date'], errors='coerce').dt.date
+        df["tourney_date"] = pd.to_datetime(
+            df["tourney_date"], format="%Y%m%d", errors="coerce"
+        ).dt.date
+        df["tourney_start_date"] = pd.to_datetime(
+            df["tourney_start_date"], errors="coerce"
+        ).dt.date
 
         with self.session_scope() as session:
             for _, row in df.iterrows():
-                exists = session.query(Tournoi).filter_by(tourney_id=row["tourney_id"]).first()
+                exists = (
+                    session.query(Tournoi)
+                    .filter_by(tourney_id=row["tourney_id"])
+                    .first()
+                )
                 if not exists:
                     tourney = Tournoi(
                         tourney_id=row["tourney_id"],
