@@ -31,4 +31,4 @@ jobs:
         run: poetry install
 
       - name: Exécuter le script principal
-        run: poetry run python tennis_win_fun/batch/build_historic.py
+        run: poetry run python batch/build_historic.py
