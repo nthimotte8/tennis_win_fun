@@ -1,4 +1,4 @@
-name: Exécution manuelle du script main.py
+name: Historic Build Job
 
 on:
   push:
@@ -29,6 +29,12 @@ jobs:
 
       - name: Installer les dépendances
         run: poetry install
+
+      - name: Lister les fichiers pour déboguer
+        run: |
+          echo "Chemin courant : $(pwd)"
+          ls -R
+
 
       - name: Exécuter le script principal
         run: poetry run python batch/build_historic.py

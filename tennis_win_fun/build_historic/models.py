@@ -1,3 +1,4 @@
+import logging
 from contextlib import contextmanager
 
 import pandas as pd
@@ -10,6 +11,10 @@ from sqlalchemy import (
     create_engine,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
+
+# Configuration du logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
@@ -63,9 +68,13 @@ class DbNeon:
         avoiding duplicates on (name, ioc).
         """
         df = df[["name", "hand", "ht", "ioc"]].drop_duplicates()
+        inserted = 0
 
         with self.session_scope() as session:
             for _, row in df.iterrows():
+                if pd.isna(row["name"]) or pd.isna(row["ioc"]):
+                    continue  # ignore invalid rows
+
                 exists = (
                     session.query(Joueur)
                     .filter_by(name=row["name"], ioc=row["ioc"])
@@ -74,13 +83,14 @@ class DbNeon:
                 if not exists:
                     player = Joueur(
                         name=row["name"],
-                        hand=row["hand"],
-                        ht=row["ht"],
+                        hand=row["hand"] if pd.notna(row["hand"]) else None,
+                        ht=int(row["ht"]) if pd.notna(row["ht"]) else None,
                         ioc=row["ioc"],
                     )
                     session.add(player)
+                    inserted += 1
 
-        print(f"{len(df)} joueurs insérés ou ignorés.")
+        logger.info(f"{inserted} joueurs insérés, {len(df) - inserted} ignorés.")
 
     def write_tourney(self, df: pd.DataFrame):
         """
@@ -109,8 +119,12 @@ class DbNeon:
             df["tourney_start_date"], errors="coerce"
         ).dt.date
 
+        inserted = 0
         with self.session_scope() as session:
             for _, row in df.iterrows():
+                if pd.isna(row["tourney_id"]) or pd.isna(row["tourney_name"]):
+                    continue  # ligne invalide
+
                 exists = (
                     session.query(Tournoi)
                     .filter_by(tourney_id=row["tourney_id"])
@@ -121,11 +135,12 @@ class DbNeon:
                         tourney_id=row["tourney_id"],
                         tourney_name=row["tourney_name"],
                         surface=row["surface"],
-                        draw_size=row["draw_size"],
+                        draw_size=int(row["draw_size"]) if pd.notna(row["draw_size"]) else None,
                         tourney_level=row["tourney_level"],
                         tourney_date=row["tourney_date"],
                         tourney_start_date=row["tourney_start_date"],
                     )
                     session.add(tourney)
+                    inserted += 1
 
-        print(f"{len(df)} tournois insérés ou ignorés.")
+        logger.info(f"{inserted} tournois insérés, {len(df) - inserted} ignorés.")
