@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from tennis_win_fun.build_historic.read_all import BuildHistoric
+from tennis_win_fun.build_historic.historic_launcher import BuildHistoric
 
 
 @pytest.fixture

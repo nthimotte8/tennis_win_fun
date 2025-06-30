@@ -1,6 +1,7 @@
 import os
-
 import pandas as pd
+
+from tennis_win_fun.build_historic.models import DbNeon
 
 
 class BuildHistoric:
@@ -8,9 +9,10 @@ class BuildHistoric:
     Class to build all historic data from csv files.
     """
 
-    def __init__(self):
+    def __init__(self, db=None):
         """
         Initialize the BuildHistoric class.
+        :param db: Database handler instance, if None will create DbNeon instance internally
         """
         self.dossier_csv = "../historic_data"
         self.all_cols = [
@@ -65,7 +67,7 @@ class BuildHistoric:
             "loser_rank_points",
         ]
 
-        self.tournemant_cols = [
+        self.tournament_cols = [
             "tourney_id",
             "tourney_name",
             "surface",
@@ -86,6 +88,11 @@ class BuildHistoric:
             "loser_age",
         ]
 
+        if db is None:
+            self.db = DbNeon(db_url=os.getenv("DATABASE_URL", "sqlite:///tennis.db"))
+        else:
+            self.db = db
+
     def get_historic_from_csv(self, gender: str = "wta") -> pd.DataFrame:
         """
         Read and concatenate all historic data from CSV files in the specified directory.
@@ -100,20 +107,19 @@ class BuildHistoric:
         pd.DataFrame
             A DataFrame containing all historic data concatenated from CSV files.
         """
-        # Construire le chemin absolu vers le dossier
         dir_csv = os.path.abspath(os.path.join(self.dossier_csv, gender))
 
         if not os.path.exists(dir_csv):
             raise FileNotFoundError(f"Le dossier {dir_csv} est introuvable.")
 
-        # Lister les fichiers CSV
         csv_files = [f for f in os.listdir(dir_csv) if f.endswith(".csv")]
 
         if not csv_files:
             raise FileNotFoundError(f"Aucun fichier CSV trouvé dans {dir_csv}.")
 
-        # Lire et concaténer les DataFrames
-        dataframes = [pd.read_csv(os.path.join(dir_csv, f)) for f in csv_files]
+        dataframes = [
+            pd.read_csv(os.path.join(dir_csv, f), dtype=str) for f in csv_files
+        ]
         df_concatene = pd.concat(dataframes, ignore_index=True)
 
         return df_concatene
@@ -121,29 +127,26 @@ class BuildHistoric:
     def build_tourney(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Build a DataFrame containing tournament information.
-        One with all tourney information and one with the tourney id and date
-        tourney_date looks like 20230101
+
         Parameters
         ----------
         df : pd.DataFrame
-        DataFrame containing match data.
+            DataFrame containing match data.
 
         Returns
+        -------
         pd.DataFrame
             A DataFrame containing tournament information.
-
         """
-        # check if all columns are present in the DataFrame
-        missing_cols = set(self.tournemant_cols) - set(df.columns)
+        missing_cols = set(self.tournament_cols) - set(df.columns)
         if missing_cols:
             raise ValueError(
                 f"Les colonnes suivantes sont manquantes dans le DataFrame: {missing_cols}"
             )
-        # Create a DataFrame with tournament information
-        df_tourney = df[self.tournemant_cols].drop_duplicates().reset_index(drop=True)
-        # Convert tourney_date to datetime format
+
+        df_tourney = df[self.tournament_cols].drop_duplicates().reset_index(drop=True)
         df_tourney["tourney_start_date"] = pd.to_datetime(
-            df_tourney["tourney_date"], format="%Y%m%d"
+            df_tourney["tourney_date"], format="%Y%m%d", errors="coerce"
         )
 
         return df_tourney
@@ -162,24 +165,62 @@ class BuildHistoric:
         pd.DataFrame
             A DataFrame with unique players (id, name, etc.) excluding age.
         """
-        # Colonnes à utiliser (sans celles contenant "age")
         player_cols = [col for col in self.player_cols if "age" not in col]
 
-        # Séparer les colonnes winner et loser
         winner_cols = [col for col in player_cols if col.startswith("winner_")]
         loser_cols = [col for col in player_cols if col.startswith("loser_")]
 
-        # Créer DataFrame pour winners
         df_winner = df[winner_cols].copy()
         df_winner.columns = [col.replace("winner_", "") for col in df_winner.columns]
 
-        # Créer DataFrame pour losers
         df_loser = df[loser_cols].copy()
         df_loser.columns = [col.replace("loser_", "") for col in df_loser.columns]
 
-        # Concaténer et supprimer les doublons
-        df_players = pd.concat(
-            [df_winner, df_loser], ignore_index=True
-        ).drop_duplicates()
+        df_players = pd.concat([df_winner, df_loser], ignore_index=True).drop_duplicates()
 
-        return df_players
+        return df_players.reset_index(drop=True)
+
+    def _load_and_build_players(self, gender: str) -> pd.DataFrame:
+        print(f"Chargement et construction des joueurs pour {gender.upper()}...")
+        df = self.get_historic_from_csv(gender)
+        return self.build_players(df)
+
+    def _load_and_build_tourney(self, gender: str) -> pd.DataFrame:
+        print(f"Chargement et construction des tournois pour {gender.upper()}...")
+        df = self.get_historic_from_csv(gender)
+        return self.build_tourney(df)
+
+    def run(self, genders: list = ["wta", "atp"]):
+        """
+        Run the historic data building process for specified genders.
+
+        Parameters
+        ----------
+        genders : list
+            List of gender strings to process (e.g., ["wta", "atp"]).
+        """
+        print("Début de la construction des données historiques...")
+
+        players_dfs = []
+        tourney_dfs = []
+
+        for gender in genders:
+            df_players = self._load_and_build_players(gender)
+            players_dfs.append(df_players)
+
+            df_tourney = self._load_and_build_tourney(gender)
+            tourney_dfs.append(df_tourney)
+
+        print("Concaténation des données joueurs...")
+        df_players_all = pd.concat(players_dfs).drop_duplicates().reset_index(drop=True)
+        print(f"Nombre total de joueurs uniques : {len(df_players_all)}")
+
+        print("Concaténation des données tournois...")
+        df_tourney_all = pd.concat(tourney_dfs).drop_duplicates().reset_index(drop=True)
+        print(f"Nombre total de tournois uniques : {len(df_tourney_all)}")
+
+        print("Écriture des données dans la base...")
+        self.db.write_players(df_players_all)
+        self.db.write_tourney(df_tourney_all)
+
+        print("Processus terminé avec succès.")
