@@ -1,6 +1,8 @@
+from unittest.mock import patch
+
 import pandas as pd
 import pytest
-from unittest.mock import patch
+
 from tennis_win_fun.build_historic.read_all import BuildHistoric
 
 
