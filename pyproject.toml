@@ -7,10 +7,11 @@ readme = "README.md"
 packages = [{ include = "tennis_win_fun" }]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.12"
 requests = "^2.31"
+pandas = "^2.2.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 ruff = "^0.4.4"
 pytest = "^7.0"
 
@@ -20,7 +21,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py312"
 select = ["E", "F", "B", "I", "UP"]
 fixable = ["ALL"]
 exclude = ["venv", ".venv", "tests/fixtures"]
