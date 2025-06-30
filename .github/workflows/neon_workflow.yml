@@ -28,9 +28,9 @@ jobs:
         env:
           POETRY_VIRTUALENVS_CREATE: false
 
-      - name: Set up Neon Preview Branch
+      - name: Create Neon Preview Branch
         id: neon
-        uses: neondatabase/preview-branch-action@v4
+        uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           api_key: ${{ secrets.NEON_API_KEY }}
@@ -47,3 +47,11 @@ jobs:
           DATABASE_URL: ${{ steps.neon.outputs.database_url }}
         run: |
           pytest tests/
+
+      - name: Delete Neon Preview Branch
+        if: github.event.action == 'closed'
+        uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          branch: pr-${{ github.event.pull_request.number }}
