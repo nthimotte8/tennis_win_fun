@@ -46,6 +46,7 @@ class Joueur(Base):
 
 class DbNeon:
     def __init__(self, db_url: str = "sqlite:///tennis.db"):
+        print(f"[DEBUG] db_url = {db_url!r}")
 
         self.engine = create_engine(db_url, echo=False, future=True)
         logger.info(f"[DB INIT] Connexion à la base : {self.engine.url}")
