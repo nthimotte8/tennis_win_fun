@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{ include = "tennis_win_fun" }]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.11"
 requests = "^2.31"
 pandas = "^2.2.2"
 psycopg2-binary = "^2.9"
