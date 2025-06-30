@@ -46,8 +46,10 @@ class Joueur(Base):
 
 class DbNeon:
     def __init__(self, db_url: str = "sqlite:///tennis.db"):
-        logger.info(f"[DB INIT] Connexion à la base : {self.engine.url}")
+
         self.engine = create_engine(db_url, echo=False, future=True)
+        logger.info(f"[DB INIT] Connexion à la base : {self.engine.url}")
+
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine, future=True)
 

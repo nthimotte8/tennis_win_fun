@@ -45,7 +45,7 @@ jobs:
     environment: stg
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Déploiement staging (à adapter selon ta stack)..."
+      - run: echo "Déploiement staging "
 
   deploy-prod:
     needs: lint-and-test
@@ -53,4 +53,4 @@ jobs:
     environment: prod
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Déploiement production (à adapter selon ta stack)..."
+      - run: echo "Déploiement production "
