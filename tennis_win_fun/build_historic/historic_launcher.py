@@ -15,7 +15,7 @@ class BuildHistoric:
         Initialize the BuildHistoric class.
         :param db: Database handler instance, if None will create DbNeon instance internally
         """
-        self.dossier_csv = "../historic_data"
+        self.dossier_csv = "../tennis_win_fun/historic_data"
         self.all_cols = [
             "tourney_id",
             "tourney_name",

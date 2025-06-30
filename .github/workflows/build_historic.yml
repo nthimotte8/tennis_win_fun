@@ -1,4 +1,4 @@
-name: Exécution manuelle du script main.py
+name: Historic Build Job
 
 on:
   push:
