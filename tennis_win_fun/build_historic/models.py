@@ -46,7 +46,11 @@ class Joueur(Base):
 
 class DbNeon:
     def __init__(self, db_url: str = "sqlite:///tennis.db"):
+        print(f"[DEBUG] db_url = {db_url!r}")
+
         self.engine = create_engine(db_url, echo=False, future=True)
+        logger.info(f"[DB INIT] Connexion à la base : {self.engine.url}")
+
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine, future=True)
 
@@ -135,7 +139,9 @@ class DbNeon:
                         tourney_id=row["tourney_id"],
                         tourney_name=row["tourney_name"],
                         surface=row["surface"],
-                        draw_size=int(row["draw_size"]) if pd.notna(row["draw_size"]) else None,
+                        draw_size=int(row["draw_size"])
+                        if pd.notna(row["draw_size"])
+                        else None,
                         tourney_level=row["tourney_level"],
                         tourney_date=row["tourney_date"],
                         tourney_start_date=row["tourney_start_date"],
