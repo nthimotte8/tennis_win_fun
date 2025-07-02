@@ -139,11 +139,9 @@ class DbNeon:
                         tourney_id=row["tourney_id"],
                         tourney_name=row["tourney_name"],
                         surface=row["surface"],
-
                         draw_size=int(row["draw_size"])
                         if pd.notna(row["draw_size"])
-                        else None 
-                      
+                        else None,
                         tourney_level=row["tourney_level"],
                         tourney_date=row["tourney_date"],
                         tourney_start_date=row["tourney_start_date"],
