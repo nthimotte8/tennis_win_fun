@@ -215,7 +215,8 @@ class DbNeon:
         """
         expected_cols = [
             "tourney_id",
-            "winner_idwinner_seed",
+            "winner_id",
+            "winner_seed",
             "winner_entry",
             "winner_name",
             "loser_id",
