@@ -1,0 +1,43 @@
+name: Historic Match Build Job
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'  # tous les lundis à 6h UTC
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - name: Cloner le repo
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installer Poetry
+        run: pip install poetry
+
+      - name: Configurer Poetry
+        run: poetry config virtualenvs.create false
+
+      - name: Installer les dépendances
+        run: poetry install
+
+      - name: Lister les fichiers pour déboguer
+        run: |
+          echo "Chemin courant : $(pwd)"
+          ls -R
+
+
+      - name: Exécuter le script principal
+        run: poetry run python batch/build_historic_match.py
