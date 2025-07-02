@@ -1,5 +1,6 @@
 import os
 from typing import List
+
 import pandas as pd
 
 from tennis_win_fun.build_historic.models import DbNeon
@@ -241,7 +242,7 @@ class BuildHistoric:
 
         print("Processus terminé avec succès.")
 
-    def run_match_historic(self, genders: List[str] = ["wta", "atp"]):
+    def run_match_historic(self, genders: List[str] = None):
         """
         Run the historic match data building process.
         This method is intended to be implemented to handle match data processing.
@@ -273,20 +274,26 @@ class BuildHistoric:
         print(f"Nombre total de matchs : {len(df_matchs_all)}")
 
         # keep only the columns that are needed for the match data
-        df_matchs_all = df_matchs_all[self.match_cols].drop_duplicates().reset_index(drop=True)
+        df_matchs_all = (
+            df_matchs_all[self.match_cols].drop_duplicates().reset_index(drop=True)
+        )
 
-        #Read the players and tournaments from the database
+        # Read the players and tournaments from the database
         df_players = self.db.read_players()
         df_tourney = self.db.read_tourney()
 
-        #select id cols to join
+        # select id cols to join
         df_players = df_players[["id", "name", "ioc"]]
         df_tourney = df_tourney[["id", "tourney_id"]]
-        #join players and tournaments to the match data
-        df_matchs_all = df_matchs_all.merge(df_players, left_on="winner_name", right_on="name", how="left")
-        #rename columns to avoid confusion
+        # join players and tournaments to the match data
+        df_matchs_all = df_matchs_all.merge(
+            df_players, left_on="winner_name", right_on="name", how="left"
+        )
+        # rename columns to avoid confusion
         df_matchs_all.rename(columns={"id": "winner_id"}, inplace=True)
-        df_matchs_all = df_matchs_all.merge(df_players, left_on="loser_name", right_on="name", how="left")
+        df_matchs_all = df_matchs_all.merge(
+            df_players, left_on="loser_name", right_on="name", how="left"
+        )
         df_matchs_all.rename(columns={"id": "loser_id"}, inplace=True)
         df_matchs_all = df_matchs_all.merge(df_tourney, on="tourney_id", how="left")
         # drop tourney_id column from the match data
@@ -295,4 +302,3 @@ class BuildHistoric:
 
         # write the match data to the database
         self.db.write_matchs(df_matchs_all)
-

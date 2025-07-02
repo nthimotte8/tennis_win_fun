@@ -59,6 +59,7 @@ class Match(Base):
             "score",
         ]
     """
+
     __tablename__ = "matches"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -76,14 +77,8 @@ class Match(Base):
     score = Column(String)  # match score
 
     __table_args__ = (
-        UniqueConstraint(
-            "tourney_id", "winner_id", "loser_id", name="_match_uc"
-        ),
+        UniqueConstraint("tourney_id", "winner_id", "loser_id", name="_match_uc"),
     )
-
-
-
-
 
 
 class DbNeon:
@@ -220,8 +215,7 @@ class DbNeon:
         """
         expected_cols = [
             "tourney_id",
-            "winner_id"
-            "winner_seed",
+            "winner_idwinner_seed",
             "winner_entry",
             "winner_name",
             "loser_id",
@@ -262,7 +256,11 @@ class DbNeon:
         inserted = 0
         with self.session_scope() as session:
             for _, row in df.iterrows():
-                if pd.isna(row["tourney_id"]) or pd.isna(row["winner_id"]) or pd.isna(row["loser_id"]):
+                if (
+                    pd.isna(row["tourney_id"])
+                    or pd.isna(row["winner_id"])
+                    or pd.isna(row["loser_id"])
+                ):
                     continue
                 # Check if match already exists
                 exists = (
@@ -279,16 +277,26 @@ class DbNeon:
                         tourney_id=row["tourney_id"],
                         winner_id=row["winner_id"],
                         loser_id=row["loser_id"],
-                        winner_seed=int(row["winner_seed"]) if pd.notna(row["winner_seed"]) else None,
-                        loser_seed=int(row["loser_seed"]) if pd.notna(row["loser_seed"]) else None,
-                        winner_entry=row["winner_entry"] if pd.notna(row["winner_entry"]) else None,
-                        loser_entry=row["loser_entry"] if pd.notna(row["loser_entry"]) else None,
-                        winner_name=row["winner_name"] if pd.notna(row["winner_name"]) else None,
-                        loser_name=row["loser_name"] if pd.notna(row["loser_name"]) else None,
+                        winner_seed=int(row["winner_seed"])
+                        if pd.notna(row["winner_seed"])
+                        else None,
+                        loser_seed=int(row["loser_seed"])
+                        if pd.notna(row["loser_seed"])
+                        else None,
+                        winner_entry=row["winner_entry"]
+                        if pd.notna(row["winner_entry"])
+                        else None,
+                        loser_entry=row["loser_entry"]
+                        if pd.notna(row["loser_entry"])
+                        else None,
+                        winner_name=row["winner_name"]
+                        if pd.notna(row["winner_name"])
+                        else None,
+                        loser_name=row["loser_name"]
+                        if pd.notna(row["loser_name"])
+                        else None,
                         score=row["score"] if pd.notna(row["score"]) else None,
                     )
                     session.add(match)
                     inserted += 1
         logger.info(f"{inserted} matches insérés, {len(df) - inserted} ignorés.")
-
-
