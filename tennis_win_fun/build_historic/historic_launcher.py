@@ -1,5 +1,5 @@
 import os
-
+from typing import List
 import pandas as pd
 
 from tennis_win_fun.build_historic.models import DbNeon
@@ -66,6 +66,17 @@ class BuildHistoric:
             "winner_rank_points",
             "loser_rank",
             "loser_rank_points",
+        ]
+
+        self.match_cols = [
+            "tourney_id",
+            "winner_seed",
+            "winner_entry",
+            "winner_name",
+            "loser_seed",
+            "loser_entry",
+            "loser_name",
+            "score",
         ]
 
         self.tournament_cols = [
@@ -229,3 +240,59 @@ class BuildHistoric:
         self.db.write_tourney(df_tourney_all)
 
         print("Processus terminé avec succès.")
+
+    def run_match_historic(self, genders: List[str] = ["wta", "atp"]):
+        """
+        Run the historic match data building process.
+        This method is intended to be implemented to handle match data processing.
+
+        Parameters
+        ----------
+        genders: str
+        available values are "wta" and "atp".
+        default is ["wta", "atp"].
+
+        Returns
+        -------
+        None
+        """
+
+        if genders is None:
+            genders = ["wta", "atp"]
+        print("Début de la construction des données historiques...")
+
+        matchs_dfs = []
+
+        for gender in genders:
+            df = self.get_historic_from_csv(gender)
+            matchs_dfs.append(df)
+
+        # concatenate all match data
+        print("Concaténation des données de matchs...")
+        df_matchs_all = pd.concat(matchs_dfs, ignore_index=True)
+        print(f"Nombre total de matchs : {len(df_matchs_all)}")
+
+        # keep only the columns that are needed for the match data
+        df_matchs_all = df_matchs_all[self.match_cols].drop_duplicates().reset_index(drop=True)
+
+        #Read the players and tournaments from the database
+        df_players = self.db.read_players()
+        df_tourney = self.db.read_tourney()
+
+        #select id cols to join
+        df_players = df_players[["id", "name", "ioc"]]
+        df_tourney = df_tourney[["id", "tourney_id"]]
+        #join players and tournaments to the match data
+        df_matchs_all = df_matchs_all.merge(df_players, left_on="winner_name", right_on="name", how="left")
+        #rename columns to avoid confusion
+        df_matchs_all.rename(columns={"id": "winner_id"}, inplace=True)
+        df_matchs_all = df_matchs_all.merge(df_players, left_on="loser_name", right_on="name", how="left")
+        df_matchs_all.rename(columns={"id": "loser_id"}, inplace=True)
+        df_matchs_all = df_matchs_all.merge(df_tourney, on="tourney_id", how="left")
+        # drop tourney_id column from the match data
+        df_matchs_all = df_matchs_all.drop(columns=["tourney_id"])
+        df_matchs_all.rename(columns={"id": "tourney_id"}, inplace=True)
+
+        # write the match data to the database
+        self.db.write_matchs(df_matchs_all)
+

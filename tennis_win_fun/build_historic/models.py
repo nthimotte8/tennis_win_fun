@@ -44,6 +44,48 @@ class Joueur(Base):
     __table_args__ = (UniqueConstraint("name", "ioc", name="_name_ioc_uc"),)
 
 
+class Match(Base):
+    """
+    Represents a tennis match between two players in a tournament.
+    The match is uniquely identified by the combination of tourney_id, winner_id, and loser_id.
+    expected_cols= [
+            "tourney_id",
+            "winner_seed",
+            "winner_entry",
+            "winner_name",
+            "loser_seed",
+            "loser_entry",
+            "loser_name",
+            "score",
+        ]
+    """
+    __tablename__ = "matches"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tourney_id = Column(String, nullable=False)
+    winner_id = Column(Integer, nullable=False)  # winner_id
+    loser_id = Column(Integer, nullable=False)  # loser_id
+    player1_id = Column(Integer, nullable=False)  # winner_id
+    player2_id = Column(Integer, nullable=False)  # loser_id
+    loser_seed = Column(Integer)  # loser_seed
+    winner_seed = Column(Integer)  # winner_seed
+    winner_entry = Column(String)  # winner_entry
+    loser_entry = Column(String)  # loser_entry
+    winner_name = Column(String)  # winner_name
+    loser_name = Column(String)  # loser_name
+    score = Column(String)  # match score
+
+    __table_args__ = (
+        UniqueConstraint(
+            "tourney_id", "winner_id", "loser_id", name="_match_uc"
+        ),
+    )
+
+
+
+
+
+
 class DbNeon:
     def __init__(self, db_url: str = "sqlite:///tennis.db"):
         print(f"[DEBUG] db_url = {db_url!r}")
@@ -150,3 +192,103 @@ class DbNeon:
                     inserted += 1
 
         logger.info(f"{inserted} tournois insérés, {len(df) - inserted} ignorés.")
+
+    def read_players(self):
+        """
+        Read all players from the joueurs table into a DataFrame.
+        """
+        with self.session_scope() as session:
+            query = session.query(Joueur)
+            df = pd.read_sql(query.statement, session.bind)
+        return df
+
+    def read_tourneys(self):
+        """
+        Read all tournaments from the tournois table into a DataFrame.
+        :return: DataFrame containing all tournaments.
+        """
+        with self.session_scope() as session:
+            query = session.query(Tournoi)
+            df = pd.read_sql(query.statement, session.bind)
+        return df
+
+    def write_matches(self, df: pd.DataFrame):
+        """
+        Insert matches from a DataFrame into the matches table,
+        avoiding duplicates on (tourney_id, player1_id, player2_id).
+        build match id from tourney_id and player1_id and player2_id.
+        """
+        expected_cols = [
+            "tourney_id",
+            "winner_id"
+            "winner_seed",
+            "winner_entry",
+            "winner_name",
+            "loser_id",
+            "loser_seed",
+            "loser_entry",
+            "loser_name",
+            "score",
+            "best_of",
+            "round",
+            "minutes",
+            "w_ace",
+            "w_df",
+            "w_svpt",
+            "w_1stIn",
+            "w_1stWon",
+            "w_2ndWon",
+            "w_SvGms",
+            "w_bpSaved",
+            "w_bpFaced",
+            "l_ace",
+            "l_df",
+            "l_svpt",
+            "l_1stIn",
+            "l_1stWon",
+            "l_2ndWon",
+            "l_SvGms",
+            "l_bpSaved",
+            "l_bpFaced",
+            "winner_rank",
+            "winner_rank_points",
+            "loser_rank",
+            "loser_rank_points",
+        ]
+        for col in expected_cols:
+            if col not in df.columns:
+                df[col] = None
+
+        inserted = 0
+        with self.session_scope() as session:
+            for _, row in df.iterrows():
+                if pd.isna(row["tourney_id"]) or pd.isna(row["winner_id"]) or pd.isna(row["loser_id"]):
+                    continue
+                # Check if match already exists
+                exists = (
+                    session.query(Match)
+                    .filter_by(
+                        tourney_id=row["tourney_id"],
+                        player1_id=row["winner_id"],
+                        player2_id=row["loser_id"],
+                    )
+                    .first()
+                )
+                if not exists:
+                    match = Match(
+                        tourney_id=row["tourney_id"],
+                        winner_id=row["winner_id"],
+                        loser_id=row["loser_id"],
+                        winner_seed=int(row["winner_seed"]) if pd.notna(row["winner_seed"]) else None,
+                        loser_seed=int(row["loser_seed"]) if pd.notna(row["loser_seed"]) else None,
+                        winner_entry=row["winner_entry"] if pd.notna(row["winner_entry"]) else None,
+                        loser_entry=row["loser_entry"] if pd.notna(row["loser_entry"]) else None,
+                        winner_name=row["winner_name"] if pd.notna(row["winner_name"]) else None,
+                        loser_name=row["loser_name"] if pd.notna(row["loser_name"]) else None,
+                        score=row["score"] if pd.notna(row["score"]) else None,
+                    )
+                    session.add(match)
+                    inserted += 1
+        logger.info(f"{inserted} matches insérés, {len(df) - inserted} ignorés.")
+
+
