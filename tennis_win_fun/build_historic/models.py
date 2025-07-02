@@ -66,9 +66,6 @@ class Match(Base):
     tourney_id = Column(String, nullable=False)
     winner_id = Column(Integer, nullable=False)  # winner_id
     loser_id = Column(Integer, nullable=False)  # loser_id
-    player2_id = Column(Integer, nullable=False)  # loser_id
-    loser_seed = Column(Integer)  # loser_seed
-    winner_seed = Column(Integer)  # winner_seed
     winner_entry = Column(String)  # winner_entry
     loser_entry = Column(String)  # loser_entry
     winner_name = Column(String)  # winner_name
@@ -277,12 +274,6 @@ class DbNeon:
                         tourney_id=row["tourney_id"],
                         winner_id=row["winner_id"],
                         loser_id=row["loser_id"],
-                        winner_seed=int(row["winner_seed"])
-                        if pd.notna(row["winner_seed"])
-                        else None,
-                        loser_seed=int(row["loser_seed"])
-                        if pd.notna(row["loser_seed"])
-                        else None,
                         winner_entry=row["winner_entry"]
                         if pd.notna(row["winner_entry"])
                         else None,
