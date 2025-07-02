@@ -296,9 +296,7 @@ class BuildHistoric:
         )
         df_matchs_all.rename(columns={"id": "loser_id"}, inplace=True)
         df_matchs_all = df_matchs_all.merge(df_tourney, on="tourney_id", how="left")
-        # drop tourney_id column from the match data
-        df_matchs_all = df_matchs_all.drop(columns=["tourney_id"])
-        df_matchs_all.rename(columns={"id": "tourney_id"}, inplace=True)
+
 
         # write the match data to the database
         self.db.write_matches(df_matchs_all)
