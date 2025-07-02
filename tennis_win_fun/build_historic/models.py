@@ -268,8 +268,8 @@ class DbNeon:
                     session.query(Match)
                     .filter_by(
                         tourney_id=row["tourney_id"],
-                        player1_id=row["winner_id"],
-                        player2_id=row["loser_id"],
+                        winner_id=row["winner_id"],
+                        loser_id=row["loser_id"],
                     )
                     .first()
                 )
