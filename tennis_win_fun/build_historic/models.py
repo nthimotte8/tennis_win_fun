@@ -66,7 +66,6 @@ class Match(Base):
     tourney_id = Column(String, nullable=False)
     winner_id = Column(Integer, nullable=False)  # winner_id
     loser_id = Column(Integer, nullable=False)  # loser_id
-    player2_id = Column(Integer, nullable=False)  # loser_id
     loser_seed = Column(Integer)  # loser_seed
     winner_seed = Column(Integer)  # winner_seed
     winner_entry = Column(String)  # winner_entry
