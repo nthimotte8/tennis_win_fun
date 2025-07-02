@@ -301,4 +301,4 @@ class BuildHistoric:
         df_matchs_all.rename(columns={"id": "tourney_id"}, inplace=True)
 
         # write the match data to the database
-        self.db.write_matchs(df_matchs_all)
+        self.db.write_matches(df_matchs_all)
