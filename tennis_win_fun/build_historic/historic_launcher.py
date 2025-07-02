@@ -280,7 +280,7 @@ class BuildHistoric:
 
         # Read the players and tournaments from the database
         df_players = self.db.read_players()
-        df_tourney = self.db.read_tourney()
+        df_tourney = self.db.read_tourneys()
 
         # select id cols to join
         df_players = df_players[["id", "name", "ioc"]]
